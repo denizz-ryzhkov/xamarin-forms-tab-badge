@@ -24,7 +24,7 @@
     <MtouchDebug>true</MtouchDebug>
     <MtouchFastDev>true</MtouchFastDev>
     <MtouchProfiling>true</MtouchProfiling>
-    <MtouchLink>SdkOnly</MtouchLink>
+    <MtouchLink>None</MtouchLink>
     <MtouchArch>x86_64</MtouchArch>
     <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
     <MtouchTlsProvider>Default</MtouchTlsProvider>
@@ -111,6 +111,8 @@
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\tabicon.png" />
+    <BundleResource Include="Resources\MoreMenu_more_icon_social.png" />
+    <BundleResource Include="Resources\MoreMenu_more_icon_social%402x.png" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />

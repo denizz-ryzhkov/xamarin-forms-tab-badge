@@ -12,6 +12,13 @@ using Plugin.Badge.Abstractions;
 
 namespace Plugin.Badge.Droid
 {
+    public enum BadgeShape
+    {
+        None,
+        Dot,
+        Counter
+    }
+
     public class BadgeView : TextView
     {
         private const int DefaultLrPaddingDip = 4;
@@ -25,6 +32,7 @@ namespace Plugin.Badge.Droid
         private ShapeDrawable _backgroundShape;
         private BadgePosition _position;
 
+        private BadgeShape BadgeType { get; set; }
 
         private int _badgeMarginL;
         private int _badgeMarginR;
@@ -86,9 +94,9 @@ namespace Plugin.Badge.Droid
         /// <returns>The view.</returns>
         /// <param name="context">Context.</param>
         /// <param name="target">Target.</param>
-        public static BadgeView ForTarget(Context context, View target)
+        public static BadgeView ForTarget(Context context, View target, Xamarin.Forms.Element element)
         {
-            var badgeView = new BadgeView(context, null, Android.Resource.Attribute.TextViewStyle);
+            var badgeView = new BadgeView(context, null, Android.Resource.Attribute.TextViewStyle, element);
             badgeView.WrapTargetWithLayout(target);
             return badgeView;
         }
@@ -100,27 +108,38 @@ namespace Plugin.Badge.Droid
         /// <returns>The layout.</returns>
         /// <param name="context">Context.</param>
         /// <param name="target">Target</param>
-        public static BadgeView ForTargetLayout(Context context, View target)
+        public static BadgeView ForTargetLayout(Context context, View target, Xamarin.Forms.Element element)
         {
-            var badgeView = new BadgeView(context, null, Android.Resource.Attribute.TextViewStyle);
+            var badgeView = new BadgeView(context, null, Android.Resource.Attribute.TextViewStyle, element);
             badgeView.AddToTargetLayout(target);
             return badgeView;
         }
 
-        private BadgeView(Context context, IAttributeSet attrs, int defStyle) : base(context, attrs, defStyle)
+        private BadgeView(Context context, IAttributeSet attrs, int defStyle, Xamarin.Forms.Element element) : base(context, attrs, defStyle)
         {
-            Init(context);
+            Init(context, element);
         }
 
-        private void Init(Context context)
+        private void Init(Context context, Xamarin.Forms.Element element)
         {
+            InitBadgeType(element);
             _context = context;
 
             Typeface = Typeface.DefaultBold;
-            var paddingPixels = DipToPixels(DefaultLrPaddingDip);
-            SetPadding(paddingPixels, 0, paddingPixels, 0);
             SetTextColor(Color.White);
-            SetTextSize(ComplexUnitType.Dip, TextSizeDip);
+
+            if (BadgeType == BadgeShape.Dot)
+            {
+                int paddingPixels = DipToPixels(TabBadge.GetBadgeRadius(element));
+                SetPadding(paddingPixels + 1, paddingPixels, paddingPixels + 1, paddingPixels);
+                SetTextSize(ComplexUnitType.Dip, 0);
+            }
+            else
+            {
+                int paddingPixels = DipToPixels(DefaultLrPaddingDip);
+                SetPadding(paddingPixels, 0, paddingPixels, 0);
+                SetTextSize(ComplexUnitType.Dip, TextSizeDip);
+            }
 
             _fadeInAnimation = new AlphaAnimation(0, 1)
             {
@@ -139,6 +158,33 @@ namespace Plugin.Badge.Droid
             BadgeColor = _defaultBadgeColor;
 
             Visibility = ViewStates.Gone;
+        }
+
+        public void BadgeTextChanged(Xamarin.Forms.Element element)
+        {
+            InitBadgeType(element);
+            int paddingPixels = 0;
+
+            switch (BadgeType)
+            {
+                case BadgeShape.Counter:
+                    paddingPixels = DipToPixels(DefaultLrPaddingDip);
+                    SetPadding(paddingPixels, 0, paddingPixels, 0);
+                    SetTextSize(ComplexUnitType.Dip, TextSizeDip);
+                    Text = TabBadge.GetBadgeText(element);
+                    break;
+                case BadgeShape.Dot:
+                    paddingPixels = DipToPixels(TabBadge.GetBadgeRadius(element));
+                    SetPadding(paddingPixels + 1, paddingPixels, paddingPixels + 1, paddingPixels);
+                    SetTextSize(ComplexUnitType.Dip, 0);
+                    Text = "0";
+                    break;
+                case BadgeShape.None:
+                    Text = null;
+                    break;
+                default:
+                    break;
+            }
         }
 
         private ShapeDrawable CreateBackgroundShape()
@@ -345,5 +391,16 @@ namespace Plugin.Badge.Droid
             }
         }
 
+        private void InitBadgeType(Xamarin.Forms.Element element)
+        {
+            var text = TabBadge.GetBadgeText(element);
+
+            if (string.IsNullOrEmpty(text))
+                BadgeType = BadgeShape.None;
+            else if (text == "0")
+                BadgeType = BadgeShape.Dot;
+            else
+                BadgeType = BadgeShape.Counter;
+        }
     }
 }

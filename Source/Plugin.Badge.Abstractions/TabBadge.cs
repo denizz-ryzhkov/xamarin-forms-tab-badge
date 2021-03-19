@@ -16,7 +16,7 @@ namespace Plugin.Badge.Abstractions
             view.SetValue(BadgeTextProperty, value);
         }
 
-        public static BindableProperty BadgeColorProperty = BindableProperty.CreateAttached("BadgeColor", typeof(Color), typeof(TabBadge), Color.Default, BindingMode.OneWay);
+        public static BindableProperty BadgeColorProperty = BindableProperty.CreateAttached("BadgeColor", typeof(Color), typeof(TabBadge), Color.Red, BindingMode.OneWay);
 
         public static Color GetBadgeColor(BindableObject view)
         {
@@ -87,11 +87,23 @@ namespace Plugin.Badge.Abstractions
                     case Device.UWP:
                     case Device.macOS:
                     case Device.iOS:
-                        return new Thickness(0);
+                        return new Thickness(0, 5, 0, 0);
                 }
 
                 return new Thickness(0);
             }
+        }
+
+        public static BindableProperty BadgeRadiusProperty = BindableProperty.CreateAttached("BadgeRadius", typeof(float), typeof(TabBadge), 5f, BindingMode.OneWay);
+
+        public static float GetBadgeRadius(BindableObject view)
+        {
+            return (float)view.GetValue(BadgeRadiusProperty);
+        }
+
+        public static void SetBadgeRadius(BindableObject view, float value)
+        {
+            view.SetValue(BadgeRadiusProperty, value);
         }
 
         /// <summary>

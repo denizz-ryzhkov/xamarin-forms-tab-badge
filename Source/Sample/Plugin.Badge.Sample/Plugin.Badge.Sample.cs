@@ -100,7 +100,7 @@ namespace Plugin.Badge.Sample
                 _tabbedPage.On<Xamarin.Forms.PlatformConfiguration.Android>().SetToolbarPlacement(ToolbarPlacement.Bottom);
             }
 
-            _tabbedPage.ToolbarItems.Add(new ToolbarItem("Item1", "tabicon.png", () => { }, ToolbarItemOrder.Primary));
+            _tabbedPage.ToolbarItems.Add(new ToolbarItem("Item1", "MoreMenu_more_icon_social.png", () => { }, ToolbarItemOrder.Primary));
             MainPage = _tabbedPage;
         }
 
@@ -160,16 +160,16 @@ namespace Plugin.Badge.Sample
                 _tabbedPage.On<Xamarin.Forms.PlatformConfiguration.Android>().SetToolbarPlacement(ToolbarPlacement.Bottom);
             }
 
-            _tabbedPage.ToolbarItems.Add(new ToolbarItem("Item1", "tabicon.png", () => { }, ToolbarItemOrder.Primary));
+            _tabbedPage.ToolbarItems.Add(new ToolbarItem("Item1", "MoreMenu_more_icon_social.png", () => { }, ToolbarItemOrder.Primary));
             (MainPage as NavigationPage)?.PushAsync(_tabbedPage);
         }
 
         private ContentPage CreateTab2()
         {
             var tab2 = CreateTab1();
-            tab2.IconImageSource = "tabicon.png";
+            tab2.IconImageSource = "MoreMenu_more_icon_social.png";
             tab2.Title = "Tab 2";
-            (tab2.BindingContext as Tab1ViewModel).CountValue = 1;
+            (tab2.BindingContext as Tab1ViewModel).CountValue = 0;
             return tab2;
         }
 
@@ -196,7 +196,7 @@ namespace Plugin.Badge.Sample
                             Margin = new Thickness(0, 40),
                             VerticalOptions = LayoutOptions.CenterAndExpand,
                             HorizontalOptions = LayoutOptions.Center,
-                            Source = "tabicon.png"
+                            Source = "MoreMenu_more_icon_social.png"
                         },
                         new Button
                         {
@@ -205,7 +205,7 @@ namespace Plugin.Badge.Sample
                             {
                                 var page = ((this.MainPage as NavigationPage)?.CurrentPage as TabbedPage)?.GetChildPageWithBadge(2);
 
-                                page.IconImageSource = page.IconImageSource == null ? "tabicon.png" : null;
+                                page.IconImageSource = page.IconImageSource == null ? "MoreMenu_more_icon_social.png" : null;
 
                             })
                         },

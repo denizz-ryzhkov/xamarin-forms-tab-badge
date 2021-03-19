@@ -16,7 +16,7 @@
                    TextColor="Black"
                    FontAttributes="Bold"
                    VerticalTextAlignment="Center" />
-            <Image Source="tabicon.png"
+            <Image Source="MoreMenu_more_icon_social.png"
                    VerticalOptions="Center"
                    WidthRequest="16"
                    HeightRequest="16" />
@@ -42,11 +42,11 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Image Source="tabicon.png"
+                <Image Source="MoreMenu_more_icon_social.png"
                        WidthRequest="48"
                        HeightRequest="48" />
                 <Image Grid.Row="1"
-                       Source="tabicon.png"
+                       Source="MoreMenu_more_icon_social.png"
                        WidthRequest="48"
                        HeightRequest="48" />
                 <views:Badge Grid.Row="0"

@@ -42,7 +42,7 @@ namespace Plugin.Badge.Sample.ViewModels
 
         private static readonly List<BadgePosition> Positions = Enum.GetValues(typeof(BadgePosition)).Cast<BadgePosition>().ToList();
 
-        public Color BadgeColor { get; private set; }
+        public Color BadgeColor { get; private set; } = Color.Red;
         public Color BadgeTextColor { get; private set; }
 
         public ICommand ChangeColorCommand => new Command((obj) =>
@@ -89,7 +89,7 @@ namespace Plugin.Badge.Sample.ViewModels
         private int _fontIndex;
         private int _positionIndex;
 
-        public string Count => _count <= 0 ? null : _count.ToString();
+        public string Count => _count < 0 ? null : _count.ToString();
 
         public int CountValue
         {
@@ -156,8 +156,8 @@ namespace Plugin.Badge.Sample.ViewModels
             }
         }
 
-        public Thickness Margin => new Thickness(_marginLeft, _marginTop, _marginRight, _marginBottom);
-        
+        public Thickness Margin => new Thickness(_marginLeft, _marginTop, _marginRight, _marginBottom); //new Thickness(3, 6, 0, 0);  
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void RaisePropertyChanged(string propertyName)

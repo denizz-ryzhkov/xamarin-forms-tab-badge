@@ -6,12 +6,23 @@ using System.Threading.Tasks;
 using UIKit;
 using System;
 using System.Linq;
+using CoreGraphics;
 
 namespace Plugin.Badge.iOS
 {
+    public enum BadgeShape
+    {
+        None,
+        Dot,
+        Counter
+    }
+
     [Preserve]
     public class BadgedTabbedPageRenderer : TabbedRenderer
     {
+        private BadgeShape BadgeType { get; set; }
+        private const int _baseSubviewTag = 2230;
+
         protected override void OnElementChanged(VisualElementChangedEventArgs e)
         {
             base.OnElementChanged(e);
@@ -41,24 +52,56 @@ namespace Plugin.Badge.iOS
             var element = Tabbed.GetChildPageWithBadge(tabIndex);
             element.PropertyChanged += OnTabbedPagePropertyChanged;
 
+            InitBadgeType(element);
+
             if (TabBar.Items.Length > tabIndex)
             {
                 var tabBarItem = TabBar.Items[tabIndex];
-                UpdateTabBadgeText(tabBarItem, element);
-                UpdateTabBadgeColor(tabBarItem, element);
-                UpdateTabBadgeTextAttributes(tabBarItem, element);
+
+                if (BadgeType == BadgeShape.Counter)
+                {
+                    UpdateTabBadgeText(tabIndex, tabBarItem, element);
+                    UpdateTabBadgeColor(tabIndex, tabBarItem, element);
+                    UpdateTabBadgeTextAttributes(tabBarItem, element);
+                }
+                else if (BadgeType == BadgeShape.Dot)
+                    UpdateDotBadge(tabIndex, element);
+                else
+                    UpdateDotBadge(tabIndex, element, true);
+
             }
         }
 
-        private void UpdateTabBadgeText(UITabBarItem tabBarItem, Element element)
+        private void UpdateTabBadgeText(int tabIndex, UITabBarItem tabBarItem, Element element)
         {
             var text = TabBadge.GetBadgeText(element);
 
-            tabBarItem.BadgeValue = string.IsNullOrEmpty(text) ? null : text;
+            InitBadgeType(element);
+
+            switch (BadgeType)
+            {
+                case BadgeShape.Counter:
+                    UpdateDotBadge(tabIndex, element, true);
+                    tabBarItem.BadgeValue = text;
+                    break;
+                case BadgeShape.Dot:
+                    tabBarItem.BadgeValue = null;
+                    UpdateDotBadge(tabIndex, element);
+                    break;
+                case BadgeShape.None:
+                    tabBarItem.BadgeValue = null;
+                    UpdateDotBadge(tabIndex, element, true);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void UpdateTabBadgeTextAttributes(UITabBarItem tabBarItem, Element element)
         {
+            if (BadgeType == BadgeShape.Dot)
+                return;
+
             if (!tabBarItem.RespondsToSelector(new ObjCRuntime.Selector("setBadgeTextAttributes:forState:")))
             {
                 // method not available, ios < 10
@@ -83,8 +126,16 @@ namespace Plugin.Badge.iOS
             tabBarItem.SetBadgeTextAttributes(attrs, UIControlState.Normal);
         }
 
-        private void UpdateTabBadgeColor(UITabBarItem tabBarItem, Element element)
+        private void UpdateTabBadgeColor(int tabIndex, UITabBarItem tabBarItem, Element element)
         {
+            InitBadgeType(element);
+
+            if (BadgeType == BadgeShape.Dot)
+            {
+                UpdateDotBadge(tabIndex, element);
+                return;
+            }
+
             if (!tabBarItem.RespondsToSelector(new ObjCRuntime.Selector("setBadgeColor:")))
             {
                 // method not available, ios < 10
@@ -99,6 +150,44 @@ namespace Plugin.Badge.iOS
             }
         }
 
+        private void UpdateDotBadge(int index, Element element, bool isRemove = false)
+        {
+            foreach (var subview in TabBar.Subviews)
+            {
+                if (subview is UIView uIView && uIView.Tag == index + _baseSubviewTag)
+                    subview.RemoveFromSuperview();
+            }
+
+            var text = TabBadge.GetBadgeText(element);
+            if (isRemove || string.IsNullOrEmpty(text))
+                return;
+
+            var tabBarItem = TabBar.Items[index];
+
+            var dotRadius = TabBadge.GetBadgeRadius(element);
+            var dotDiameter = dotRadius * 2;
+
+            var topMargin = TabBadge.GetBadgeMargin(element).Top;
+            var leftMargin = TabBadge.GetBadgeMargin(element).Left;
+            var rightMargin = TabBadge.GetBadgeMargin(element).Right * -1;
+
+            var tabBarItemCount = TabBar.Items.Count();
+
+            var screenSize = UIScreen.MainScreen.Bounds;
+            var halfItemWidth = (screenSize.Width) / (tabBarItemCount * 2);
+
+            var xOffset = halfItemWidth * (index * 2 + 1);
+            var imageHalfWidth = tabBarItem?.SelectedImage == null ? 13 : tabBarItem.SelectedImage.Size.Width / 2;
+            var additionalOffsetX = leftMargin + rightMargin;
+
+            var dot = new UIView(frame: new CGRect(x: xOffset + imageHalfWidth - 7 + additionalOffsetX, y: topMargin, width: dotDiameter, height: dotDiameter));
+
+            dot.Tag = index + _baseSubviewTag;
+            dot.BackgroundColor = TabBadge.GetBadgeColor(element).ToUIColor();
+            dot.Layer.CornerRadius = dotRadius;
+            TabBar.AddSubview(dot);
+        }
+
         private void OnTabbedPagePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             var page = sender as Page;
@@ -110,25 +199,27 @@ namespace Plugin.Badge.iOS
                 // #65 update badge properties if icon changed
                 if (CheckValidTabIndex(page, out int tabIndex))
                 {
-                    UpdateTabBadgeText(TabBar.Items[tabIndex], page);
-                    UpdateTabBadgeColor(TabBar.Items[tabIndex], page);
+                    UpdateTabBadgeText(tabIndex, TabBar.Items[tabIndex], page);
+                    UpdateTabBadgeColor(tabIndex, TabBar.Items[tabIndex], page);
                     UpdateTabBadgeTextAttributes(TabBar.Items[tabIndex], page);
                 }
 
                 return;
             }
 
-            if (e.PropertyName == TabBadge.BadgeTextProperty.PropertyName)
+            if (e.PropertyName == TabBadge.BadgeTextProperty.PropertyName
+                || e.PropertyName == TabBadge.BadgeMarginProperty.PropertyName
+                || e.PropertyName == TabBadge.BadgeRadiusProperty.PropertyName)
             {
                 if (CheckValidTabIndex(page, out int tabIndex))
-                    UpdateTabBadgeText(TabBar.Items[tabIndex], page);
+                    UpdateTabBadgeText(tabIndex, TabBar.Items[tabIndex], page);
                 return;
             }
 
             if (e.PropertyName == TabBadge.BadgeColorProperty.PropertyName)
             {
                 if (CheckValidTabIndex(page, out int tabIndex))
-                    UpdateTabBadgeColor(TabBar.Items[tabIndex], page);
+                    UpdateTabBadgeColor(tabIndex, TabBar.Items[tabIndex], page);
                 return;
             }
 
@@ -186,6 +277,18 @@ namespace Plugin.Badge.iOS
 
             tabbedPage.ChildAdded -= OnTabAdded;
             tabbedPage.ChildRemoved -= OnTabRemoved;
+        }
+
+        private void InitBadgeType(Element element)
+        {
+            var text = TabBadge.GetBadgeText(element);
+
+            if (string.IsNullOrEmpty(text))
+                BadgeType = BadgeShape.None;
+            else if (text == "0")
+                BadgeType = BadgeShape.Dot;
+            else
+                BadgeType = BadgeShape.Counter;
         }
     }
 }

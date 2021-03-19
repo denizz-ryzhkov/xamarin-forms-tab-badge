@@ -47,7 +47,7 @@ namespace Plugin.Badge.Droid
         {
             if (e.PropertyName == TabBadge.BadgeTextProperty.PropertyName)
             {
-                badgeView.Text = TabBadge.GetBadgeText(element);
+                badgeView.BadgeTextChanged(element); //Text = TabBadge.GetBadgeText(element);
                 return;
             }
 

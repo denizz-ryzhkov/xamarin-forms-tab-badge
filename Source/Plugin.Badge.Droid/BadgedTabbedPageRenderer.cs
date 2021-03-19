@@ -95,14 +95,14 @@ namespace Plugin.Badge.Droid
                 if (placement == ToolbarPlacement.Bottom)
                 {
                     // create for entire tab layout
-                    badgeView = BadgeView.ForTargetLayout(Context, imageView);
+                    badgeView = BadgeView.ForTargetLayout(Context, imageView, page);
                 }
                 else
                 {
                     //create badge for tab image or text
                     badgeView = BadgeView.ForTarget(Context, imageView?.Drawable != null
                         ? (Android.Views.View)imageView
-                        : targetLayout.FindChildOfType<TextView>());
+                        : targetLayout.FindChildOfType<TextView>(), page);
                 }
             }
 
